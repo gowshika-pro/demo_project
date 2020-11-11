@@ -1,0 +1,34 @@
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "maven-3.3.9"
+    }
+
+    stages {
+        stage('clone code') {
+            steps {
+                // Get some code from a GitHub repository
+                git 'https://github.com/gowshika-pro/myproj.git'
+            }
+
+        }
+        stage('Build code') {
+            steps {
+                // Run Maven on a Unix agent.
+                sh "mvn -Dmaven.test.failure.ignore=true clean package"
+            }
+
+        }
+        stage('deploy code') {
+            steps {
+                 sshagent(['deploy_user']) {
+                    sh "scp -o StrictHostKeyChecking=no webapp/target/webapp.war ec2-user@172.31.11.199:/opt/tomcat/webapps"
+                 //scp <src_file> username@ip:<destination_path>
+            }
+
+        }
+}
+    }
+}
